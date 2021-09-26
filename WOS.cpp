@@ -414,11 +414,11 @@ void WOS_SetDimDivisor(byte level, byte divisor) {
 void WOS_ApplyFlashToLamps(unsigned long curTime) {
   for (int count=0; count<WOS_MAX_LAMPS; count++) {
     if ( LampFlashPeriod[count]!=0 ) {
-      unsigned long adjustedLampFlash = (unsigned long)LampFlashPeriod[count] * (unsigned long)50;
+      unsigned long adjustedLampFlash = (unsigned long)LampFlashPeriod[count] * (unsigned long)50;      
       if ((curTime/adjustedLampFlash)%2) {
-        LampStates[count/4] &= ~(0x10<<(count%4));
+        LampStates[count/8] &= ~(0x01<<(count%8));
       } else {
-        LampStates[count/4] |= (0x10<<(count%4));
+        LampStates[count/8] |= (0x01<<(count%8));
       }
     } // end if this light should flash
   } // end loop on lights
