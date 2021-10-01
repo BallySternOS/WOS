@@ -414,7 +414,7 @@ void WOS_SetDimDivisor(byte level, byte divisor) {
 void WOS_ApplyFlashToLamps(unsigned long curTime) {
   for (int count=0; count<WOS_MAX_LAMPS; count++) {
     if ( LampFlashPeriod[count]!=0 ) {
-      unsigned long adjustedLampFlash = (unsigned long)LampFlashPeriod[count] * (unsigned long)50;      
+      unsigned long adjustedLampFlash = (unsigned long)LampFlashPeriod[count] * (unsigned long)50;
       if ((curTime/adjustedLampFlash)%2) {
         LampStates[count/8] &= ~(0x01<<(count%8));
       } else {
@@ -475,6 +475,14 @@ void WOS_SetLampState(int lampNum, byte s_lampState, byte s_lampDim, int s_lampF
 /*
  * Sound handling functions
  */
+unsigned short SoundLowerLimit = 0x0100;
+unsigned short SoundUpperLimit = 0x1F00;
+
+void WOS_SetSoundValueLimits(unsigned short lowerLimit, unsigned short upperLimit) {
+  SoundLowerLimit = lowerLimit;
+  SoundUpperLimit = upperLimit;
+}
+ 
 int SpaceLeftOnSoundStack() {
   if (SoundStackFirst>=SOUND_STACK_SIZE || SoundStackLast>=SOUND_STACK_SIZE) return 0;
   if (SoundStackLast>=SoundStackFirst) return ((SOUND_STACK_SIZE-1) - (SoundStackLast-SoundStackFirst));
@@ -485,7 +493,7 @@ int SpaceLeftOnSoundStack() {
 void WOS_PushToSoundStack(unsigned short soundNumber, byte numPushes) {  
   // If the solenoid stack last index is out of range, then it's an error - return
   if (SpaceLeftOnSoundStack()==0) return;
-
+  if (soundNumber<SoundLowerLimit || soundNumber>SoundUpperLimit) return;
 
   for (int count=0; count<numPushes; count++) {
     SoundStack[SoundStackLast] = soundNumber;
@@ -1005,8 +1013,9 @@ void WOS_InitializeMPU() {
     // If the switch is off, allow 6808 to boot
 
     // Set /HALT high
-    pinMode(14, INPUT); // Making Halt Input is as good as making it high
-    
+    pinMode(14, OUTPUT); 
+    digitalWrite(14, 1);    
+
     pinMode(2, INPUT); // IRQ
     pinMode(3, INPUT); // CLOCK
     pinMode(4, INPUT); // VMA
